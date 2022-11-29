@@ -1,3 +1,5 @@
+package UniversitySystemGUI;
+
 import java.io.*;
 import java.sql.*;
 import java.util.Scanner;
@@ -26,6 +28,46 @@ public class ProfessorSQL{
         }
        
         
+    }
+    public void displayCourses(Connection conn, String profid){
+        try{
+            Statement st = conn.createStatement();
+
+            String query1 = "select CRN, COURSENUM, SECTIONNUM, coursename from Course where PROFID = '" + profid+"';";
+
+            ResultSet rs1 = st.executeQuery(query1);
+            while(rs1.next()){
+                Statement st2 = conn.createStatement();
+                String crn = rs1.getString("CRN");
+                String coursenum = rs1.getString("COURSENUM");
+                String sectionnum = rs1.getString("SECTIONNUM");
+                String name = rs1.getString("coursename");
+                System.out.println("|CRN:"+crn+ " |COURSENUM:"+coursenum+ " |Section:"+sectionnum +" |Name:"+name);
+                String query2 = "select studid, FNAME, LNAME from STUDENT WHERE STUDID = (SELECT STUDID FROM REGISTEREDFOR WHERE CRN =" +crn+");";
+                ResultSet rs2 = st2.executeQuery(query2);
+                System.out.println("|Students Registered:");
+                while(rs2.next()){
+                    String stud = rs2.getString("STUDID");
+
+
+                        String firstn= rs2.getString("FNAME");
+                        String lname= rs2.getString("LNAME");
+                        System.out.println("|NAME:"+firstn+ " "+lname+" "+stud+" |");
+
+                    }
+                System.out.println("====================");
+
+
+
+            }
+
+
+
+        }
+        catch(SQLException e){
+            System.out.println("message: "+ e.getMessage());
+
+        }
     }
 
     public void createCourse(Connection conn, String depart,String coursenum, String sectionnum,String profid, String profname, String desc, String semester, String year) throws SQLException, IOException{

@@ -1,4 +1,4 @@
-
+package UniversitySystemGUI;
 
 //WIP
 
@@ -12,17 +12,27 @@ import java.util.Scanner;
 public class StudentSQL {
 
     //student views (needs return objects)
-    public void student_View(Connection conn, int STUDID) throws SQLException, IOException{
+    public void student_View(Connection conn, String STUDID){
         try{
-        Statement st = conn.createStatement(); 
+        Statement st = conn.createStatement();
 
-        String query = "CREATE VIEW STUDENTCOR (COURSENUM, LETTERGRADE) AS SELECT COURSENUM, LETTERGRADE FROM STUDENTRECORD WHERE STUDID = '" + STUDID + "'";
-        ResultSet rs = st.executeQuery(query);
-         while(rs.next()){
-            String course = rs.getString("COURSENUM");
-            String grade = rs.getString("LETTERGRADE");
+        String query = "CREATE OR REPLACE VIEW STUDENTCOR (COURSENUM, LETTERGRADE) AS SELECT COURSE.COURSENUM, STUDENTRECORD.LETTERGRADE FROM COURSE, STUDENTRECORD WHERE STUDENTRECORD.STUDID = '" + STUDID + "' AND COURSE.CRN = STUDENTRECORD.CRN;";
+        st.executeUpdate(query);
 
-         }
+        String query2 = "Select * from STUDENTCOR;";
+        st.executeQuery(query2);
+
+            ResultSet rs = st.executeQuery(query2);
+            System.out.println("Course | Grade");
+            while(rs.next()){
+                System.out.println("--------------");
+                String course = rs.getString("COURSENUM");
+                String grade = rs.getString("LETTERGRADE");
+                System.out.println(course + "         " + grade);
+
+
+            }
+            System.out.println("--------------");
          rs.close();
          st.close();
         }
@@ -38,7 +48,7 @@ public class StudentSQL {
             Statement st = conn.createStatement();
         )
         {
-            String query = "SELECT CRN, COURSENUM, SECTIONNUM, PROFNAME, DESC FROM COURSE WHERE DEPTKEY IN (SELECT DEPTKEY FROM DEPARTMENT WHERE DEPTNAME = '"+DEPART+"');";
+            String query = "SELECT CRN, COURSENUM, SECTIONNUM, PROFNAME, DES FROM COURSE WHERE DEPTKEY IN (SELECT DEPTKEY FROM DEPARTMENT WHERE DEPTNAME = '"+DEPART+"');";
             ResultSet rs = st.executeQuery(query);
 
             while(rs.next()){
@@ -46,7 +56,7 @@ public class StudentSQL {
                 String coursenum = rs.getString("COURSENUM");
                 String sectionnum = rs.getString("SECTIONNUM");
                 String profname = rs.getString("PROFNAME");
-                String desc = rs.getString("DESC");
+                String desc = rs.getString("DES");
 
                 System.out.println("CRN: " +crn + " Course Number: "+ coursenum  + " Section Number: " + sectionnum +" Professors Name: "+ profname +" Course Description: "+ desc);
             }
