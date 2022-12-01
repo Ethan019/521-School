@@ -25,4 +25,17 @@ public class UserLogin{
         }
         return role;
     }
+    public static  Connection New_Login(String USER, String PASSWORD){
+        Connection conn;
+        String url = "jdbc:mysql://localhost/sys";
+
+        try {
+            conn = DriverManager.getConnection(url, USER, PASSWORD);
+            return conn;
+        }catch (SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
 }

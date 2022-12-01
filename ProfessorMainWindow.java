@@ -90,7 +90,7 @@ public class ProfessorMainWindow {
 					class_list.add("dummy class " + Integer.toString(i));
 				}
 
-				ComboBox.main("PROFESSOR: MODIFY COURSE GRADES", class_list);
+				//ComboBox.main("PROFESSOR: MODIFY COURSE GRADES", class_list);
 				// what needs to be done: modify combox box class or make a combobox class to
 				// diplay students and allow their grades to be modify when class is selected
 				// from the drop down
@@ -105,7 +105,7 @@ public class ProfessorMainWindow {
 					class_list.add("dummy class " + Integer.toString(i));
 				}
 
-				ComboBox.main("PROFESSOR: MODIFY COURSE DESCRIPTION", class_list);
+				//ComboBox.main("PROFESSOR: MODIFY COURSE DESCRIPTION", class_list);
 				// what needs to be done: modify combobox class to display course description
 				// and make it editble
 			}

@@ -10,13 +10,15 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import java.sql.*;
 import java.util.Objects;
 public class StudentMainWindow
 {
 
-	private static JButton SEE_CURRENT_COURSES, MODIFY_COURSE_REGISTRATION;
+	private static JButton SEE_CURRENT_COURSES, MODIFY_COURSE_REGISTRATION, REGISTER_COURSE;
 	private String MESSAGE = "Please Select an Option";
 	private String id;
 
@@ -44,6 +46,7 @@ public class StudentMainWindow
 		MODIFY_COURSE_REGISTRATION.addActionListener(listener);
 		panel.add(MODIFY_COURSE_REGISTRATION);
 
+
 		JFrame frame = new JFrame();
 		frame.setTitle("UNIVERSITY: STUDENT");
 		frame.setLocation(new Point(500, 300));
@@ -60,40 +63,104 @@ public class StudentMainWindow
 		{
 			Object source = event.getSource();
 			StudentSQL SQL = new StudentSQL();
-			Connection conn =null;
-			try {
-				conn = DriverManager.getConnection("jdbc:mysql://localhost/sys", "Student", "StudentPassword");
-			}catch (SQLException e){
-				System.out.println(e.getMessage());
-			}
+
+			Connection conn = UserLogin.New_Login("Student", "StudentPassword");
 
 			if (source == SEE_CURRENT_COURSES)
 			{
 
 				CustomOutputStream.main("STUDENT: SEE CURRENT COURSES", false);
 
-				System.out.println("\n" + "========== Displaying courses for Professor " + id + " ==========");
+				System.out.println("\n" + "========== Displaying courses for Student " + id + " ==========");
 				SQL.student_View(conn, id);
 
 			}
+			if (source == MODIFY_COURSE_REGISTRATION) {
 
-			if (source == MODIFY_COURSE_REGISTRATION)
-			{
+				Object[] options =
+						{"Add a course", "Drop a course"};
+				int selection = JOptionPane.showOptionDialog(null, MESSAGE, "Add or Drop a course",
+						JOptionPane.DEFAULT_OPTION, 3, null, options, null);
 
-				List<String> class_list = new ArrayList<String>();
-				class_list.add("Select A Course");
+				switch (selection) {
+					case 0 -> {
+						Object[] department_options =
+								{"Cancel", "Go"};
+						JTextField department = new JTextField();
+						department.setDocument(new JTextFieldLimit(20));
+						Object[] dept_fields =
+								{"Department ID", department};
+						int department_input = JOptionPane.showOptionDialog(null, dept_fields,
+								"Enter Department Information", JOptionPane.OK_CANCEL_OPTION, 3, null, department_options,
+								null);
+						switch (department_input) {
+							case 1:
+								String dept_code = department.getText().toUpperCase();
 
-				for (int i = 1; i < 5; i++) // <-- fill class_list with a students actual classes
-				{
-					class_list.add("dummy course " + Integer.toString(i)); // <--test code delete in final version
+								boolean is_dept = true; // ATTENTION TODO <-- sql boolean to check if code is valid department
+
+								if (is_dept) {
+									List<String> class_list = new ArrayList<String>();
+									class_list.add("Select A Course");
+
+									try{
+											Statement st = conn.createStatement();
+
+
+										String query = "SELECT  CRN FROM COURSE WHERE DEPTKEY = '"+dept_code+"';";
+										ResultSet rs = st.executeQuery(query);
+
+										while(rs.next()){
+
+											String crn = rs.getString("CRN");
+
+
+											class_list.add(crn);
+										}
+
+									} catch (SQLException e) {
+										throw new RuntimeException(e);
+									}
+									 // <--test code delete in final
+										// version
+
+
+									ComboBox.main("STUDENT: MODIFY COURSE REGISTRATION", class_list,
+											ComboBox.STUDENT_ADD_COURSE, id);
+								} else {
+									JOptionPane.showMessageDialog(null, "An error occured. Department not found.", "ERROR",
+											JOptionPane.ERROR_MESSAGE);
+								}
+
+								break;
+						}
+					}
+					case 1 -> {
+						List<String> class_list = new ArrayList<String>();
+						class_list.add("Select A Course");
+						try{
+							Statement st = conn.createStatement();
+
+
+							String query = "SELECT * FROM registeredfor WHERE STUDID = "+id+";";
+							ResultSet rs = st.executeQuery(query);
+
+							while(rs.next()){
+
+								String crn = rs.getString("CRN");
+
+
+								class_list.add(crn);
+							}
+
+						} catch (SQLException e) {
+							throw new RuntimeException(e);
+						}
+						ComboBox.main("STUDENT: MODIFY COURSE REGISTRATION", class_list, ComboBox.STUDENT_DROP_COURSE, id);
+					}
 				}
-
-				ComboBox.main("STUDENT: MODIFY COURSE REGISTRATION", class_list);
-
-				// what needs to be done:
-				// MODify the combobox class to display register/unregister buttons when class
-				// is selected from drop down list
 			}
+
 		}
 	}
 

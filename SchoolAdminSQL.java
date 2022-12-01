@@ -12,13 +12,20 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class SchoolAdminSQL {
     // Allow admin to view student record info
-    public void ViewStudRec(Connection conn, String STUD_ID) throws SQLException, IOException {
+    public void ViewStudRec(Connection conn, String STUDID) throws SQLException, IOException {
         try {
             Statement st = conn.createStatement();
             
-            String query = "SELECT * FROM STUDENTRECORD WHERE STUDID = '" + STUD_ID + "';";
-            ResultSet rs = st.executeQuery(query);
 
+
+
+            String query1 = "CREATE OR REPLACE VIEW STUDENTRE (RECORDID, STUDID, DEPTKEY, COURSENUM, GRADE, LETTERGRADE, SEMESTER, YEAR) AS SELECT \n" +
+                    "STUDENTRECORD.RECORDID, STUDENTRECORD.STUDID, STUDENTRECORD.DEPTKEY, COURSE.COURSENUM, STUDENTRECORD.GRADE, STUDENTRECORD.LETTERGRADE,STUDENTRECORD.SEMESTER, STUDENTRECORD.YEAR\n" +
+                    "FROM COURSE, STUDENTRECORD WHERE STUDENTRECORD.STUDID = " + STUDID + " AND COURSE.CRN = STUDENTRECORD.CRN;";
+            st.executeUpdate(query1);
+
+            String query2= "Select * from STUDENTRE;";
+           ResultSet rs = st.executeQuery(query2);
             while(rs.next()) {
                 String record_id = rs.getString("RECORDID");
                 String stud_id = rs.getString("STUDID");
@@ -45,21 +52,25 @@ public class SchoolAdminSQL {
     }
 
     // Allow admin to view professor info
-    public void ViewProfInfo(Connection conn, String PROF_ID) throws SQLException, IOException {
+    public void ViewProfInfo(Connection conn, String PROF_ID){
         try {
             Statement st = conn.createStatement();
 
-            String query = "SELECT * FROM PROFESSOR WHERE PROFID = '" + PROF_ID + "';";
+            String query = "SELECT PROFESSOR.DEPTKEY, PROFESSOR.PROFNAME, COURSE.COURSENUM, FROM PROFESSOR, COURSE WHERE PROFID = '" + PROF_ID + "';";
             ResultSet rs = st.executeQuery(query);
 
             while(rs.next()) {
-                String f_name = rs.getString("FNAME");
-                String l_name = rs.getString("LNAME");
+                //String f_name = rs.getString("FNAME");
+                //String l_name = rs.getString("LNAME");
                 String department = rs.getString("DEPTKEY");
-                System.out.println("Professor ID: " + PROF_ID);
-                System.out.println("First Name: " + f_name);
-                System.out.println("Last Name: " + l_name);
-                System.out.println("Department: " + department); 
+                String name = rs.getString("PROFNAME");
+                String coursen = rs.getString("COURSENUM");
+                System.out.println("Professor ID:" + PROF_ID);
+                //System.out.println("First Name: " + f_name);
+                //System.out.println("Last Name: " + l_name);
+                System.out.print("Professor Name:"+name);
+                System.out.println("Department:" + department);
+                System.out.println("Course: "+coursen);
             }
         }
         catch(SQLException e) {
@@ -88,6 +99,51 @@ public class SchoolAdminSQL {
 
     }
 
+
+
+
+    public boolean AddStudent(Connection conn, String F_NAME, String L_NAME, String MAJOR, String Password){
+        try{
+            Statement st = conn.createStatement();
+
+            //checks for student first
+            String query = "SELECT * FROM STUDENT WHERE FNAME= '"+F_NAME+"' AND LNAME ='"+L_NAME+"' AND MAJOR = '"+MAJOR+"';";
+
+            ResultSet rs1 = st.executeQuery(query);
+
+            if(!rs1.next()){
+
+                String addstu = "INSERT INTO STUDENT(FNAME, LNAME, MAJOR) VALUES ('"+F_NAME+"', '"+L_NAME+"', '"+MAJOR+"');";
+
+                st.executeUpdate(addstu);
+
+            }else
+            {
+                //uncomment if boolean instead of void
+                return false;
+            }
+
+            String query2 = "SELECT STUDID FROM STUDENT WHERE FNAME= '"+F_NAME+"' AND LNAME ='"+L_NAME+"' AND MAJOR = '"+MAJOR+"';";
+
+
+            ResultSet rs2 = st.executeQuery(query2);
+
+            if(rs2.next()){
+                String userid = rs2.getString("STUDID");
+                String adduse = "INSERT INTO USERS(USERID, PASSWORD, ROLE) VALUES ("+userid+", '"+Password+"', 'Student');";
+
+
+                st.executeUpdate(adduse);
+                //uncomment if returning true.
+                return true;
+            }
+        }
+        catch (SQLException e){
+           System.out.println(e.getMessage());
+            return false;
+        }
+        return false;
+    }
     // Allow admin to update professor info
     public void AddProf(Connection conn, String F_NAME, String L_NAME, String DEPT_KEY) throws SQLException, IOException {
         try {
@@ -130,24 +186,17 @@ public class SchoolAdminSQL {
 
     }
 
-    // Allow admin to add student to course - add button is selected
-    public void AddStudToCourse(Connection conn, String STUD_ID, String COURSE_NUM, String CRN) {
+    // Allow admin to add student to course - add button is selected (testing)
+    public void AddStudToCourse(Connection conn, String STUD_ID, String CRN) {
         try {
             Statement st = conn.createStatement();
 
             // Display registered courses first
-            String select_query = "SELECT * FROM REGISTEREDFOR WHERE STUDID = '" + STUD_ID + "';";
+            String select_query = "SELECT * FROM REGISTEREDFOR WHERE STUDID = '" + STUD_ID + " AND CRN = "+CRN+";";
             ResultSet rs1 = st.executeQuery(select_query);
-            while(rs1.next() == true) {
-                String course_nums = rs1.getString("COURSENUM");
-                String crn = rs1.getString("CRN");
-                String grade = rs1.getString("GRADE");
-                System.out.println("Course Number: " + COURSE_NUM);
-                System.out.println("CRN: " + crn);
-                System.out.println("Grade: " + grade);
-
-                String add_course = "INSERT INTO REGISTEREDFOR(CRN, COURSENUM) VALUES('" + crn + "', '" + course_nums + "') WHERE STUDID = '" + STUD_ID + "';";
-
+            if(!rs1.next()) {
+                String insert_student="Insert into REGISTEREDFOR(STUDID, CRN) VALUES("+STUD_ID+","+CRN+");";
+                st.executeUpdate(insert_student);
             }
         }catch (SQLException e ) {
             System.out.println(e.getMessage());
@@ -197,26 +246,32 @@ public class SchoolAdminSQL {
     }
         
     // Add a course WORKS -- TESTED
-    public  boolean AddCourse(Connection conn, String DEPARTMENT, String COURSE_NUM, String COURSE_NAME, String DES, String PROF_NAME, String Semester, String Year, String Section_NUM, String PROFID){
+    public  boolean AddCourse(Connection conn, String ID, String COURSE_NUM, String COURSE_NAME, String DES, String PROF_NAME, String Semester, String Year, String Section_NUM, String PROFID){
         try {
             Statement st = conn.createStatement();
 
-            
 
+            String adept ="Select DEPTKEY FROM WORKSFOR WHERE SCHADID=" +ID+";";
+            ResultSet r2 = st.executeQuery(adept);
 
-            String add_course_query = "INSERT INTO COURSE(DEPTKEY, coursename, COURSENUM, SECTIONNUM, PROFID, PROFNAME, DES, SEMESTER, YEAR) VALUES('" + DEPARTMENT + "', '" + COURSE_NAME + "', '" + COURSE_NUM + "', '" + Section_NUM + "', '" + PROFID + "', '"+PROF_NAME+"', '"+DES+"', '"+Semester+"', '"+Year+"');";
-            st.executeUpdate(add_course_query);
-
-            String select_query = "SELECT * FROM COURSE WHERE COURSENUM = '" + COURSE_NUM + "';";
-            ResultSet rs = st.executeQuery(select_query);
-
-            if(rs.next() == true) {
-                System.out.println("This course is in the system.");
+            if(r2.next()) {
+                String deptk = r2.getString("DEPTKEY");
+                System.out.println(deptk);
+                String add_course_query = "INSERT INTO COURSE(DEPTKEY, coursename, COURSENUM, SECTIONNUM, PROFID, PROFNAME, DES, SEMESTER, YEAR) VALUES('" + deptk + "', '" + COURSE_NAME + "', '" + COURSE_NUM + "', '" + Section_NUM + "', '" + PROFID + "', '"+PROF_NAME+"', '"+DES+"', '"+Semester+"', '"+Year+"');";
+                st.executeUpdate(add_course_query);
                 return true;
             }
 
-            rs.close();
-            st.close();
+
+            //String select_query = "SELECT * FROM COURSE WHERE COURSENUM = '" + COURSE_NUM + "';";
+            //ResultSet rs = st.executeQuery(select_query);
+
+            //if(rs.next() == true) {
+              //  System.out.println("This course is in the system.");
+               // return true;
+            //}
+
+
         }
         catch(SQLException e) {
             System.out.println("Error: " + e.getMessage() +"Please try to add course again");

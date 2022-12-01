@@ -130,7 +130,7 @@ public class SchoolAdministratorMainWindow
 
 
 					Object[] course_fields_add =
-					{ "Course Department", course_department, "Course Name", course_name, "Course NUM", course_num,
+					{ " Course Name", course_name, "Course NUM", course_num,
 							"Course Desciption", course_description , "Professor Name", course_professor,"Professor ID", course_professorID, "Semester", course_semester, "Year", course_year, "Section", course_section};
 
 					int selection_add_course = JOptionPane.showOptionDialog(null, course_fields_add,
@@ -139,7 +139,7 @@ public class SchoolAdministratorMainWindow
 					switch (selection_add_course)
 					{
 					case 1:
-						String cd = course_department.getText();
+						String adminid = id;
 						String cnum = course_num.getText();
 						String cname = course_name.getText();
 						String cdesc = course_description.getText();
@@ -154,7 +154,7 @@ public class SchoolAdministratorMainWindow
 
 
 
-						boolean success = SQL.AddCourse(conn, cd, cnum, cname, cdesc, pname, semes, year, secn, profid); // BOOLEAN TO VERIFY COURSE IS ADDED
+						boolean success = SQL.AddCourse(conn, adminid, cnum, cname, cdesc, pname, semes, year, secn, profid); // BOOLEAN TO VERIFY COURSE IS ADDED
 
 						if (success)
 						{
@@ -372,8 +372,8 @@ public class SchoolAdministratorMainWindow
 					student_classification.setDocument(new JTextFieldLimit(20));
 
 					Object[] student_fields_add =
-					{ "First Name", student_first_name, "Last Name", student_last_name, "Student ID", student_ID,
-							"Student Classification", student_classification };
+					{ "First Name", student_first_name, "Last Name", student_last_name, "Password", student_ID,
+							"Major", student_classification };
 
 					int selection_add_student = JOptionPane.showOptionDialog(null, student_fields_add,
 							"Enter student Information", JOptionPane.CANCEL_OPTION, 3, null, options_add_student, null);
@@ -383,8 +383,8 @@ public class SchoolAdministratorMainWindow
 					case 1:
 						String sfname = student_first_name.getText();
 						String slname = student_last_name.getText();
-						String sID = student_ID.getText();
-						String sclass = student_classification.getText();
+						String pass = student_ID.getText();
+						String major = student_classification.getText();
 
 						// ========================================================
 						//
@@ -392,7 +392,7 @@ public class SchoolAdministratorMainWindow
 						//
 						// ========================================================
 
-						boolean success = false; // SQL BOOLEAN TO VERIFY student IS ADDED/DELETED
+						boolean success = SQL.AddStudent(conn, sfname, slname, major, pass); // SQL BOOLEAN TO VERIFY student IS ADDED/DELETED
 
 						if (success)
 						{
@@ -452,6 +452,7 @@ public class SchoolAdministratorMainWindow
 
 				}
 			}
+			//complete and works -- TESTED
 			if (source == SEE_STUDENT_RECORD)
 			{
 
