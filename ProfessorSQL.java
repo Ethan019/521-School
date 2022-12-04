@@ -43,7 +43,7 @@ public class ProfessorSQL{
                 String sectionnum = rs1.getString("SECTIONNUM");
                 String name = rs1.getString("coursename");
                 System.out.println("|CRN:"+crn+ " |COURSENUM:"+coursenum+ " |Section:"+sectionnum +" |Name:"+name);
-                String query2 = "select STUDENT.studid, STUDENT.FNAME, STUDENT.LNAME, REGISTEREDFOR.GRADE from STUDENT, REGISTEREDFOR WHERE REGISTEREDFOR.STUDID =STUDENT.STUDID AND STUDENT.STUDID = (SELECT STUDID GRADE FROM REGISTEREDFOR WHERE CRN =" +crn+");";
+                String query2 = "select STUDENT.studid, STUDENT.FNAME, STUDENT.LNAME, REGISTEREDFOR.GRADE from STUDENT, REGISTEREDFOR WHERE REGISTEREDFOR.STUDID =STUDENT.STUDID AND STUDENT.STUDID = (SELECT STUDID GRADE FROM REGISTEREDFOR WHERE CRN =" +crn+") AND REGISTEREDFOR.CRN IN (SELECT CRN FROM COURSE WHERE PROFID = "+profid+");";
                 ResultSet rs2 = st2.executeQuery(query2);
                 System.out.println("|Students Registered:");
                 while(rs2.next()){

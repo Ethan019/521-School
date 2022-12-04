@@ -15,12 +15,10 @@ public class SchoolAdminSQL {
     public void ViewStudRec(Connection conn, String STUDID) throws SQLException, IOException {
         try {
             Statement st = conn.createStatement();
-            
-
-
 
             String query1 = "CREATE OR REPLACE VIEW STUDENTRE (RECORDID, STUDID, DEPTKEY, COURSENUM, GRADE, LETTERGRADE, SEMESTER, YEAR) AS SELECT \n" +
-                    "STUDENTRECORD.RECORDID, STUDENTRECORD.STUDID, STUDENTRECORD.DEPTKEY, COURSE.COURSENUM, STUDENTRECORD.GRADE, STUDENTRECORD.LETTERGRADE,STUDENTRECORD.SEMESTER, STUDENTRECORD.YEAR\n" +
+                    "STUDENTRECORD.RECORDID, STUDENTRECORD.STUDID, STUDENTRECORD.DEPTKEY, COURSE.COURSENUM, " +
+                    "STUDENTRECORD.GRADE, STUDENTRECORD.LETTERGRADE,STUDENTRECORD.SEMESTER, STUDENTRECORD.YEAR\n" +
                     "FROM COURSE, STUDENTRECORD WHERE STUDENTRECORD.STUDID = " + STUDID + " AND COURSE.CRN = STUDENTRECORD.CRN;";
             st.executeUpdate(query1);
 
@@ -145,46 +143,7 @@ public class SchoolAdminSQL {
         return false;
     }
     // Allow admin to update professor info
-    public void AddProf(Connection conn, String F_NAME, String L_NAME, String DEPT_KEY) throws SQLException, IOException {
-        try {
 
-            //ethan error check. Had to change how the ids were assigned to fix database design.
-            Statement st = conn.createStatement();
-            Random rand = new Random();
-            int randomNum = ThreadLocalRandom.current().nextInt(1100000, 1199999 + 1);
-
-            String checkID = "Select PROFID FROM PROFESSOR WHERE PROFID = " +randomNum+ ";";
-            ResultSet rs1 =st.executeQuery(checkID);
-            //while(rs1!=null){
-              //  String PROF_ID = Integer.toString(randomNum);
-           // } else{
-             //   String checkIDloop = "Select PROFID FROM PROFESSOR WHERE PROFID = " +randomNum+ ";";
-
-            //}
-
-                //NOT WORKING
-            //
-            //
-            //
-            // String update_query = "INSERT INTO PROFESSOR(FNAME, LNAME, DEPTKEY, PROFID) VALUES('" + F_NAME + "', '" + L_NAME + "', DEPTKEY = '" + DEPT_KEY + "' '" "');";;
-            //st.executeUpdate(update_query);
-
-            String select_query = "SELECT * FROM PROFESSOR WHERE LNAME = '" + L_NAME + "' AND FNAME = '" + F_NAME + "';";
-            ResultSet rs = st.executeQuery(select_query);
-
-            if(rs.next() == true) {
-                System.out.println("Professor added.");
-                return;
-            }
-            else {
-                System.out.println("Try again.");
-            }
-        }
-        catch(SQLException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-
-    }
 
     // Allow admin to add student to course - add button is selected (testing)
     public void AddStudToCourse(Connection conn, String STUD_ID, String CRN) {
@@ -204,60 +163,146 @@ public class SchoolAdminSQL {
     }
 
 
-    public void DelProfessor(Connection conn, String PROF_ID) {
+    public boolean DeleteProfessor(Connection conn, String Fname, String Lname, String Depart){
         try {
             Statement st = conn.createStatement();
+            String stud = "SELECT PROFID FROM PROFESSOR WHERE FNAME = '"+Fname+"' AND LNAME='"+Lname+"' AND DEPTKEY='"+Depart+"';";
+            ResultSet rs1 = st.executeQuery(stud);
+            while(rs1.next()){
+                String profid = rs1.getString("PROFID");
+                String query = "select * from course where PROFID ="+profid+";";
+                ResultSet rs2=st.executeQuery(query);
+                if(rs2.next()){
+                    String crn = rs2.getString("CRN");
+                    ResultSet rs3=st.executeQuery("Select CRN FROM REGISTEREDFOR WHERE CRN ="+crn+";");
 
-            String del_prof = "DELETE FROM PROFESSOR WHERE PROFID = '" + PROF_ID + "';";
-            st.executeUpdate(del_prof);
+                    if(rs3.next()){
+                        String dele_reg = "Delete FROM REGISTEREDFOR WHERE CRN ="+crn+";";
+                        st.executeUpdate(dele_reg);
+                        String dele_course ="DELETE FROM COURSE WHERE PROFID ="+profid+";";
+                        st.executeUpdate(dele_course);
+                        String del_prof = "DELETE FROM Professor WHERE STUDID ="+profid+";";
+                        st.executeUpdate(del_prof);
+                        return true;
+                    }else{
+                        String dele_course ="DELETE FROM COURSE WHERE PROFID ="+profid+";";
+                        st.executeUpdate(dele_course);
+                        String del_student = "DELETE FROM PROFESSOR WHERE PROFID ="+profid+";";
+                        st.executeUpdate(del_student);
+                        return true;
+                    }
 
-            String check = "SELECT * FROM PROFESSOR WHERE PROFID = '" + PROF_ID + "';";
-            ResultSet rs = st.executeQuery(check);
-            if(rs.next() == false) {
-                System.out.println("Professor deleted.");
+
+                }else{
+                    String del_prof3 = "DELETE FROM PROFESSOR WHERE PROFID ="+profid+";";
+                    st.executeUpdate(del_prof3);
+                    return true;
+                }
+
+
+
             }
-            else {
-                System.out.println("Try again.");
-            }
+
+
         }
         catch(SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            return false;
         }
+        return false;
+    }
+    public boolean AddProfessor(Connection conn,String F_NAME, String L_NAME, String PROF_NAME, String DEPT_KEY, String Password){
+        try{
+            Statement st = conn.createStatement();
 
+            //checks for prof first
+            String query = "SELECT * FROM PROFESSOR WHERE PROFNAME = '"+PROF_NAME+"' AND DEPTKEY = '"+DEPT_KEY+"';";
+
+            ResultSet rs1 = st.executeQuery(query);
+
+            if(!rs1.next()){
+
+                String addprof = "INSERT INTO PROFESSOR(PROFNAME, DEPTKEY, FNAME, LNAME) VALUES ('"+PROF_NAME+"', '"+DEPT_KEY+"', '"+F_NAME+"', '"+L_NAME+"');";
+
+                st.executeUpdate(addprof);
+
+            }else
+            {
+                //uncomment if boolean instead of void
+                return false;
+            }
+
+            String query2 = "SELECT PROFID FROM PROFESSOR WHERE PROFNAME= '"+PROF_NAME+"' AND DEPTKEY = '"+DEPT_KEY+"';";
+
+
+            ResultSet rs2 = st.executeQuery(query2);
+
+            if(rs2.next()){
+                String userid = rs2.getString("PROFID");
+                String adduse = "INSERT INTO USERS(USERID, PASSWORD, ROLE) VALUES ("+userid+", '"+Password+"', 'Professor');";
+
+
+                st.executeUpdate(adduse);
+                //uncomment if returning true.
+                return true;
+            }
+        }
+        catch (SQLException e){
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return false;
     }
 
-    public void DelStud(Connection conn, String STUD_ID) throws SQLException, IOException {
+    public boolean DeleteStudent(Connection conn, String Fname, String Lname, String Major){
         try {
             Statement st = conn.createStatement();
-            
-            String del_student = "DELETE FROM STUDENT WHERE STUDID = '" + STUD_ID + "';";
-            st.executeUpdate(del_student);
+            String stud = "SELECT STUDID FROM STUDENT WHERE FNAME = '"+Fname+"' AND LNAME='"+Lname+"' AND MAJOR='"+Major+"';";
+            ResultSet rs1 = st.executeQuery(stud);
+            while(rs1.next()){
+                String studid = rs1.getString("STUDID");
+                String query = "select * from registeredfor where studid ="+studid+";";
+                ResultSet rs2=st.executeQuery(query);
+                if(rs2.next()){
+                    String dele_course ="DELETE FROM REGISTEREDFOR WHERE STUDID ="+studid+";";
+                    st.executeUpdate(dele_course);
+                    String del_student = "DELETE FROM STUDENT WHERE STUDID ="+studid+";";
+                    st.executeUpdate(del_student);
+                    return true;
 
-            String check = "SELECT * FROM STUDENT WHERE STUDID = '" + STUD_ID + "';";
-            ResultSet rs = st.executeQuery(check);
-            if(rs.next() == false) {
-                System.out.println("Student deleted.");
+                }else{
+                    String del_student = "DELETE FROM STUDENT WHERE STUDID ="+studid+";";
+                    st.executeUpdate(del_student);
+                    return true;
+                }
+
+
+
             }
+
+
         }
         catch(SQLException e) {
             System.out.println("Error: " + e.getMessage());
+            return false;
         }
-
+        return false;
     }
         
     // Add a course WORKS -- TESTED
-    public  boolean AddCourse(Connection conn, String ID, String COURSE_NUM, String COURSE_NAME, String DES, String PROF_NAME, String Semester, String Year, String Section_NUM, String PROFID){
+    public  boolean AddCourse(Connection conn,  String COURSE_NUM, String COURSE_NAME, String DES, String PROF_NAME, String Semester, String Year, String Section_NUM ){
         try {
             Statement st = conn.createStatement();
 
 
-            String adept ="Select DEPTKEY FROM WORKSFOR WHERE SCHADID=" +ID+";";
+            String adept ="Select DEPTKEY, PROFID FROM PROFESSOR WHERE PROFNAME = '"+PROF_NAME+"';";
             ResultSet r2 = st.executeQuery(adept);
 
             if(r2.next()) {
                 String deptk = r2.getString("DEPTKEY");
+                String profi = r2.getString("PROFID");
                 System.out.println(deptk);
-                String add_course_query = "INSERT INTO COURSE(DEPTKEY, coursename, COURSENUM, SECTIONNUM, PROFID, PROFNAME, DES, SEMESTER, YEAR) VALUES('" + deptk + "', '" + COURSE_NAME + "', '" + COURSE_NUM + "', '" + Section_NUM + "', '" + PROFID + "', '"+PROF_NAME+"', '"+DES+"', '"+Semester+"', '"+Year+"');";
+                String add_course_query = "INSERT INTO COURSE(DEPTKEY, coursename, COURSENUM, SECTIONNUM, PROFID, PROFNAME, DES, SEMESTER, YEAR) VALUES('" + deptk + "', '" + COURSE_NAME + "', '" + COURSE_NUM + "', '" + Section_NUM + "', " + profi + ", '"+PROF_NAME+"', '"+DES+"', '"+Semester+"', '"+Year+"');";
                 st.executeUpdate(add_course_query);
                 return true;
             }
