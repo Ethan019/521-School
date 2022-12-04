@@ -101,7 +101,7 @@ public class LoginWindow
 				String[] args = {id};
 				if (Objects.equals(is_user, null))
 				{
-					JOptionPane.showMessageDialog(null, "Incorrect Username or Password" + pw + id + is_user, "ERROR",
+					JOptionPane.showMessageDialog(null, "Incorrect Username or Password" , "ERROR",
 							JOptionPane.ERROR_MESSAGE);
 
 				} else
