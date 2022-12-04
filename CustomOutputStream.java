@@ -11,7 +11,6 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-//AUTHOR: JARED KEKLAK (UNLESS ANNOTATED)
 public class CustomOutputStream extends OutputStream
 {
 	private JTextArea text_area;
@@ -36,16 +35,15 @@ public class CustomOutputStream extends OutputStream
 
 	public static void main(String Title, boolean is_editable)
 	{
-		JFrame frame = new JFrame(Title);
-		frame.setSize(450, 350);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		JFrame student_record_frame = new JFrame(Title);
+		student_record_frame.setSize(450, 350);
+		student_record_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		JTextArea textArea = new JTextArea(50, 40);
-		textArea.setBackground(Color.GRAY);
-		textArea.setForeground(Color.BLACK);
+		textArea.setBackground(Color.BLACK);
+		textArea.setForeground(Color.GREEN);
 		Font f = new Font("Consolas", Font.PLAIN, 12);
 		textArea.setFont(f);
-		textArea.setText("");
 
 		PrintStream printStream = new PrintStream(new CustomOutputStream(textArea, is_editable));
 		System.setOut(printStream);
@@ -54,10 +52,9 @@ public class CustomOutputStream extends OutputStream
 		JScrollPane scroll_panel = new JScrollPane(textArea);
 		scroll_panel.setBackground(Color.darkGray);
 
-		frame.add(scroll_panel);
-		frame.setLocation(new Point(500, 300));
-		frame.setAlwaysOnTop(true);
-		frame.setVisible(true);
-		frame.setResizable(false);
+		student_record_frame.add(scroll_panel);
+		student_record_frame.setLocation(new Point(500, 300));
+		student_record_frame.setAlwaysOnTop(true);
+		student_record_frame.setVisible(true);
 	}
 }

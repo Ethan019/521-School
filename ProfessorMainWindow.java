@@ -5,6 +5,9 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,16 +15,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-//AUTHOR: JARED KEKLAK (UNLESS ANNOTATED)
-public class ProfessorMainWindow
-{
+public class ProfessorMainWindow {
 
 	private static JButton SEE_CURRENT_COURSES, MODIFY_COURSE_GRADES, MODIFY_A_COURSE_DESCRIPTION;
 	private String MESSAGE = "Please Select an Option";
 	private String id;
 
-	public ProfessorMainWindow(String id)
-	{
+	public ProfessorMainWindow(String id) {
 
 		this.id = id;
 
@@ -59,60 +59,60 @@ public class ProfessorMainWindow
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		// frame.setAlwaysOnTop(true);
 		frame.setVisible(true);
-		frame.setResizable(false);
 	}
 
-	public class ButtonListener implements ActionListener
-	{
-		public void actionPerformed(ActionEvent event) throws IllegalArgumentException
-		{
+	public class ButtonListener implements ActionListener {
+		Connection conn;
+
+		public void actionPerformed(ActionEvent event) throws IllegalArgumentException {
 			Object source = event.getSource();
-			if (source == SEE_CURRENT_COURSES)
-			{
+
+			ProfessorSQL SQL = new ProfessorSQL();
+
+			try {
+				conn = DriverManager.getConnection("jdbc:mysql://localhost/sys", "Professor", "ProfessorPassword");
+			} catch (SQLException e) {
+				System.out.println(e.getMessage());
+			}
+			if (source == SEE_CURRENT_COURSES) {
 				CustomOutputStream.main("PROFESSOR: SEE CURRENT COURSES", false);
 
-				System.out.println("\n" + "========== displaying courses for professor " + id + " ==========");
-				// ==========================================================================
-				/*
-				 * IMPORTANT: Designed to be displayed using System.print... Console Output is
-				 * directed to new frame created. PRINT PROFESSOR COURSES HERE
-				 */
-				// ===========================================================================
+				System.out.println("\n" + "========== Displaying courses for Professor " + id + " ==========");
+				SQL.displayCourses(conn, id);
 			}
-			if (source == MODIFY_COURSE_GRADES)
-			{
+			if (source == MODIFY_COURSE_GRADES) {
 
 				List<String> class_list = new ArrayList<String>();
-				class_list.add("Select a course");
+				class_list.add("Select a class");
 
 				// test code, fill up class_list with professors current classes
-				for (int i = 1; i < 5; i++)
-				{
+				for (int i = 1; i < 5; i++) {
 					class_list.add("dummy class " + Integer.toString(i));
 				}
 
-				ComboBox.main("PROFESSOR: MODIFY COURSE GRADES", class_list, ComboBox.PROFESSOR_MODIFY_COURSE_GRADES);
-
+				//ComboBox.main("PROFESSOR: MODIFY COURSE GRADES", class_list);
+				// what needs to be done: modify combox box class or make a combobox class to
+				// diplay students and allow their grades to be modify when class is selected
+				// from the drop down
 			}
 
-			if (source == MODIFY_A_COURSE_DESCRIPTION)
-			{
+			if (source == MODIFY_A_COURSE_DESCRIPTION) {
 				List<String> class_list = new ArrayList<String>();
-				class_list.add("Select a course");
+				class_list.add("Select a class");
 
 				// test code, fill up class_list with professors current classes
-				for (int i = 1; i < 5; i++)
-				{
+				for (int i = 1; i < 5; i++) {
 					class_list.add("dummy class " + Integer.toString(i));
 				}
 
-				ComboBox.main("PROFESSOR: MODIFY COURSE DESCRIPTION", class_list,
-						ComboBox.PROFESSOR_MODIFY_COURSE_DESCRIPTION);
-
+				//ComboBox.main("PROFESSOR: MODIFY COURSE DESCRIPTION", class_list);
+				// what needs to be done: modify combobox class to display course description
+				// and make it editble
 			}
 
 		}
 	}
+
 
 	public static void main(String args[])
 	{
