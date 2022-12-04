@@ -5,16 +5,16 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+//AUTHOR: JARED KEKLAK (UNLESS ANNOTATED)
 public class SchoolAdministratorMainWindow
 {
 
@@ -23,6 +23,8 @@ public class SchoolAdministratorMainWindow
 
 	private String MESSAGE = "Please Select an Option";
 	private String id;
+
+	public static String CURRENT_STUDENT;
 
 	public SchoolAdministratorMainWindow(String id)
 	{
@@ -82,23 +84,15 @@ public class SchoolAdministratorMainWindow
 
 	public class ButtonListener implements ActionListener
 	{
-		Connection conn;
 		public void actionPerformed(ActionEvent event) throws IllegalArgumentException
 		{
 			Object source = event.getSource();
-			SchoolAdminSQL SQL = new SchoolAdminSQL();
-			try {
-				conn = DriverManager.getConnection("jdbc:mysql://localhost/sys", "SchoolAdmin", "SchoolPassword");
-			}catch (SQLException e){
-				System.out.println(e.getMessage());
-			}
-			//ADD COURSE WORKS -- TESTED
 			if (source == ADD_OR_REMOVE_A_COURSE)
 			{
 				Object[] options1 =
-				{ "Add Course", "Remove Course" };
+				{ "Add course", "Remove course" };
 
-				int selection = JOptionPane.showOptionDialog(null, MESSAGE, "Modify Offered Courses",
+				int selection = JOptionPane.showOptionDialog(null, MESSAGE, "Modify offered courses",
 						JOptionPane.DEFAULT_OPTION, 3, null, options1, null);
 
 				switch (selection)
@@ -109,29 +103,23 @@ public class SchoolAdministratorMainWindow
 					{ "Cancel", "Add" };
 
 					JTextField course_department = new JTextField();
-
+					JTextField course_ID = new JTextField();
 					JTextField course_name = new JTextField();
 					JTextField course_description = new JTextField();
-					JTextField course_professor = new JTextField();
-					JTextField course_professorID = new JTextField();
-					JTextField course_semester = new JTextField();
-					JTextField course_year = new JTextField();
-					JTextField course_section = new JTextField();
-					JTextField course_num = new JTextField();
+					JTextField proff_id = new JTextField();
+					JTextField proff_name = new JTextField();
+
 					course_department.setDocument(new JTextFieldLimit(20));
-					course_num.setDocument(new JTextFieldLimit(20));
+					course_ID.setDocument(new JTextFieldLimit(20));
 					course_name.setDocument(new JTextFieldLimit(20));
 					course_description.setDocument(new JTextFieldLimit(50));
-					course_professor.setDocument(new JTextFieldLimit(20));
-					course_professorID.setDocument(new JTextFieldLimit(20));
-					course_semester.setDocument(new JTextFieldLimit(20));
-					course_year.setDocument(new JTextFieldLimit(20));
-					course_section.setDocument(new JTextFieldLimit(20));
-
+					proff_id.setDocument(new JTextFieldLimit(50));
+					proff_name.setDocument(new JTextFieldLimit(50));
 
 					Object[] course_fields_add =
-					{ " Course Name", course_name, "Course NUM", course_num,
-							"Course Desciption", course_description , "Professor Name", course_professor, "Semester", course_semester, "Year", course_year, "Section", course_section};
+					{ "Course Department", course_department, "Course ID", course_ID, "Course Name", course_name,
+							"Course Desciption", course_description, "Professor ID", proff_id, "Professor Name",
+							proff_name };
 
 					int selection_add_course = JOptionPane.showOptionDialog(null, course_fields_add,
 							"Enter Course Information", JOptionPane.CANCEL_OPTION, 3, null, options_add_course, null);
@@ -139,29 +127,27 @@ public class SchoolAdministratorMainWindow
 					switch (selection_add_course)
 					{
 					case 1:
-						String adminid = id;
-						String cnum = course_num.getText();
+						String cd = course_department.getText();
+						String cID = course_ID.getText();
 						String cname = course_name.getText();
 						String cdesc = course_description.getText();
-						String pname = course_professor.getText();
-						String semes = course_semester.getText();
-						String year = course_year.getText();
-						String secn = course_section.getText();
+						String pid = proff_id.getText();
+						String pname = proff_name.getText();
 
+						// ========================================================
+						//
+						// what needs to be done: SQL FUNCTION TO add course here
+						//
+						// ========================================================
 
-						// CALLING SQL METHOD
-
-
-
-
-						boolean success = SQL.AddCourse(conn, cnum, cname, cdesc, pname, semes, year, secn); // BOOLEAN TO VERIFY COURSE IS ADDED
+						boolean success = false; // BOOLEAN TO VERIFY COURSE IS ADDED
 
 						if (success)
 						{
 							JOptionPane.showMessageDialog(null, "Class added.", "Success", JOptionPane.WARNING_MESSAGE);
 						} else
 						{
-							JOptionPane.showMessageDialog(null, "An Error Occured. Course not added.", "ERROR",
+							JOptionPane.showMessageDialog(null, "An error occured. Course not added.", "ERROR",
 									JOptionPane.ERROR_MESSAGE);
 						}
 					}
@@ -179,17 +165,17 @@ public class SchoolAdministratorMainWindow
 					course_department_delete.setDocument(new JTextFieldLimit(20));
 
 					Object[] course_fields_delete =
-					{ "Course CRN", course_ID_delete, };
+					{ "Course ID", course_ID_delete, "Course Department", course_department_delete };
 
 					int selection_delete_course = JOptionPane.showOptionDialog(null, course_fields_delete,
-							"Enter Course Information", JOptionPane.CANCEL_OPTION, 3, null, options_delete_course,
+							"Enter course information", JOptionPane.CANCEL_OPTION, 3, null, options_delete_course,
 							null);
 
 					switch (selection_delete_course)
 					{
 					case 1:
-						String CRN = course_ID_delete.getText();
-						String adminid = id;
+						String cID = course_ID_delete.getText();
+						String cdept = course_department_delete.getText();
 
 						// ========================================================
 						//
@@ -197,7 +183,7 @@ public class SchoolAdministratorMainWindow
 						//
 						// ========================================================
 
-						boolean success = SQL.DeleteCourse(conn, CRN, adminid); // BOOLEAN TO VERIFY COURSE IS ADDED/DELETED
+						boolean success = false; // BOOLEAN TO VERIFY COURSE IS ADDED/DELETED
 
 						if (success)
 						{
@@ -219,7 +205,7 @@ public class SchoolAdministratorMainWindow
 				Object[] options1 =
 				{ "Add Professor", "Remove Professor" };
 
-				int selection = JOptionPane.showOptionDialog(null, MESSAGE, "Modify Faculty",
+				int selection = JOptionPane.showOptionDialog(null, MESSAGE, "Modify faculty",
 						JOptionPane.DEFAULT_OPTION, 3, null, options1, null);
 
 				switch (selection)
@@ -233,21 +219,18 @@ public class SchoolAdministratorMainWindow
 					JTextField professor_last_name = new JTextField();
 					JTextField professor_faculty_ID = new JTextField();
 					JTextField professor_department_ID = new JTextField();
-					JTextField professor_password = new JTextField();
 
 					professor_first_name.setDocument(new JTextFieldLimit(20));
 					professor_last_name.setDocument(new JTextFieldLimit(20));
 					professor_faculty_ID.setDocument(new JTextFieldLimit(20));
 					professor_department_ID.setDocument(new JTextFieldLimit(20));
-					professor_password.setDocument(new JTextFieldLimit(20));
-
 
 					Object[] professor_fields_add =
-					{ "First Name", professor_first_name, "Last Name", professor_last_name, "Professor Name",
-							professor_faculty_ID, "Department ID", professor_department_ID, "Password", professor_password };
+					{ "First Name", professor_first_name, "Last Name", professor_last_name, "Faculty ID",
+							professor_faculty_ID, "Department ID", professor_department_ID };
 
 					int selection_add_professor = JOptionPane.showOptionDialog(null, professor_fields_add,
-							"Enter Professor Information", JOptionPane.CANCEL_OPTION, 3, null, options_add_professor,
+							"Enter professor information", JOptionPane.CANCEL_OPTION, 3, null, options_add_professor,
 							null);
 
 					switch (selection_add_professor)
@@ -257,7 +240,6 @@ public class SchoolAdministratorMainWindow
 						String plname = professor_last_name.getText();
 						String pfID = professor_faculty_ID.getText();
 						String pdeptID = professor_department_ID.getText();
-						String pass = professor_password.getText();
 
 						// ========================================================
 						//
@@ -265,7 +247,7 @@ public class SchoolAdministratorMainWindow
 						//
 						// ========================================================
 
-						boolean success = SQL.AddProfessor(conn, pfname, plname, pfID, pdeptID, pass); // BOOLEAN TO VERIFY professor IS ADDED/DELETED
+						boolean success = false; // BOOLEAN TO VERIFY professor IS ADDED/DELETED
 
 						if (success)
 						{
@@ -286,33 +268,27 @@ public class SchoolAdministratorMainWindow
 					Object[] options_delete_professor =
 					{ "Cancel", "Delete" };
 
-					JTextField professor_faculty_first_delete = new JTextField();
-					JTextField professor_faculty_last_delete = new JTextField();
-					JTextField professor_faculty_depart_delete = new JTextField();
-					professor_faculty_first_delete.setDocument(new JTextFieldLimit(20));
-					professor_faculty_last_delete.setDocument(new JTextFieldLimit(20));
-					professor_faculty_depart_delete.setDocument(new JTextFieldLimit(20));
-
+					JTextField professor_faculty_ID_delete = new JTextField();
+					professor_faculty_ID_delete.setDocument(new JTextFieldLimit(20));
 
 					Object[] professor_fields_delete =
-					{ "First Name: ", professor_faculty_first_delete, "Last Name: ", professor_faculty_last_delete, "Department: ", professor_faculty_depart_delete };
+					{ "Faculty ID", professor_faculty_ID_delete };
 
 					int selection_delete_professor = JOptionPane.showOptionDialog(null, professor_fields_delete,
-							"Professor Delete ", JOptionPane.CANCEL_OPTION, 3, null, options_delete_professor, null);
+							"Enter Professor ID", JOptionPane.CANCEL_OPTION, 3, null, options_delete_professor, null);
 
 					switch (selection_delete_professor)
 					{
 					case 1:
-						String pfID = professor_faculty_first_delete.getText();
-						String plnD = professor_faculty_last_delete.getText();
-						String pdepd = professor_faculty_depart_delete.getText();
+						String pfID = professor_faculty_ID_delete.getText();
+
 						// ========================================================
 						//
 						// what needs to be done: SQL FUNCTION TO delete professor here
 						//
 						// ========================================================
 
-						boolean success = SQL.DeleteProfessor(conn,pfID, plnD, pdepd); // BOOLEAN TO VERIFY professor IS ADDED/DELETED
+						boolean success = false; // BOOLEAN TO VERIFY professor IS ADDED/DELETED
 
 						if (success)
 						{
@@ -344,16 +320,97 @@ public class SchoolAdministratorMainWindow
 				{ "Student ID", student_ID_modify_registration };
 
 				int selection_modify_student_registration = JOptionPane.showOptionDialog(null,
-						student_modify_registration, "Enter Student ID", JOptionPane.CANCEL_OPTION, 3, null,
+						student_modify_registration, "Enter student ID", JOptionPane.CANCEL_OPTION, 3, null,
 						options_modify_student_registration, null);
 
-				// ====================================
-				//
-				// what needs to be done: sql function to find students registered courses and
-				// generate a window/box/frame to display the course with option to allow each
-				// course to be dropped
-				//
-				// =====================================
+				switch (selection_modify_student_registration)
+				{
+				case 0:
+					break;
+				case 1:
+
+					String stud_id = student_ID_modify_registration.getText();
+					CURRENT_STUDENT = stud_id;
+
+					boolean is_student = true; // sql boolean to determin if student is found or not
+
+					if (is_student)
+					{
+						Object[] options =
+						{ "Add a Course", "Drop a Course" };
+						int stud_selection = JOptionPane.showOptionDialog(null, MESSAGE,
+								"STUDENT " + stud_id + " Add or Drop a course", JOptionPane.CLOSED_OPTION, 3, null,
+								options, null);
+
+						switch (stud_selection)
+						{
+						case 0:
+							Object[] department_options =
+							{ "Cancel", "Go" };
+
+							JTextField department = new JTextField();
+							department.setDocument(new JTextFieldLimit(20));
+
+							Object[] dept_fields =
+							{ "Department ID", department };
+
+							int department_input = JOptionPane.showOptionDialog(null, dept_fields,
+									"Enter Department Information", JOptionPane.CANCEL_OPTION, 3, null,
+									department_options, null);
+
+							switch (department_input)
+							{
+							case 0:
+								break;
+							case 1:
+								String dept_code = department.getText();
+
+								boolean is_dept = true; // ATTENTION TODO <-- sql boolean to check if code is valid
+														// department
+
+								if (is_dept)
+								{
+									List<String> class_list = new ArrayList<String>();
+									class_list.add(dept_code);
+
+									for (int i = 1; i < 50; i++) // ATTENTION TODO <-- fill class_list with a
+																	// departments actual
+																	// classes
+									{
+										class_list.add("dummy course " + Integer.toString(i)); // <--test code delete in
+																								// final
+																								// version
+									}
+
+									ComboBox.main("ADMINISTRATOR: MODIFY STUDENT REGISTRATION", class_list,
+											ComboBox.ADMIN_STUDENT_ADD_COURSE);
+								}
+								break;
+							}
+
+							break;
+						case 1:
+							List<String> class_list = new ArrayList<String>();
+							class_list.add(stud_id);
+
+							for (int i = 1; i < 5; i++) // ATTENTION TODO <-- fill class_list with a students actual
+														// classes
+							{
+								class_list.add("dummy course " + Integer.toString(i)); // <--test code delete in final
+																						// version
+							}
+
+							ComboBox.main("ADMINISTRATOR: MODIFY STUDENT REGISTRATION", class_list,
+									ComboBox.ADMIN_STUDENT_DROP_COURSE);
+							break;
+						}
+					} else
+					{
+						JOptionPane.showMessageDialog(null, "An error occured. Student not found.", "ERROR",
+								JOptionPane.ERROR_MESSAGE);
+					}
+
+				}
 
 			}
 			if (source == ADD_OR_REMOVE_A_STUDENT)
@@ -382,19 +439,19 @@ public class SchoolAdministratorMainWindow
 					student_classification.setDocument(new JTextFieldLimit(20));
 
 					Object[] student_fields_add =
-					{ "First Name", student_first_name, "Last Name", student_last_name, "Password", student_ID,
-							"Major", student_classification };
+					{ "First Name", student_first_name, "Last Name", student_last_name, "Student ID", student_ID,
+							"Student Classification", student_classification };
 
 					int selection_add_student = JOptionPane.showOptionDialog(null, student_fields_add,
-							"Enter student Information", JOptionPane.CANCEL_OPTION, 3, null, options_add_student, null);
+							"Enter student information", JOptionPane.CANCEL_OPTION, 3, null, options_add_student, null);
 
 					switch (selection_add_student)
 					{
 					case 1:
 						String sfname = student_first_name.getText();
 						String slname = student_last_name.getText();
-						String pass = student_ID.getText();
-						String major = student_classification.getText();
+						String sID = student_ID.getText();
+						String sclass = student_classification.getText();
 
 						// ========================================================
 						//
@@ -402,7 +459,7 @@ public class SchoolAdministratorMainWindow
 						//
 						// ========================================================
 
-						boolean success = SQL.AddStudent(conn, sfname, slname, major, pass); // SQL BOOLEAN TO VERIFY student IS ADDED/DELETED
+						boolean success = false; // SQL BOOLEAN TO VERIFY student IS ADDED/DELETED
 
 						if (success)
 						{
@@ -423,33 +480,28 @@ public class SchoolAdministratorMainWindow
 					Object[] options_delete_student =
 					{ "Cancel", "Delete" };
 
-					JTextField student_first_delete = new JTextField();
-					JTextField student_last_delete = new JTextField();
-					JTextField student_major_delete = new JTextField();
+					JTextField student_ID_delete = new JTextField();
 
-					student_first_delete.setDocument(new JTextFieldLimit(20));
-					student_last_delete.setDocument(new JTextFieldLimit(20));
-					student_major_delete.setDocument(new JTextFieldLimit(20));
+					student_ID_delete.setDocument(new JTextFieldLimit(20));
 
 					Object[] student_fields_delete =
-					{ "Student First Name", student_first_delete, "Student Last Name: ", student_last_delete, "Student Major; ", student_major_delete };
+					{ "Student ID", student_ID_delete };
 
 					int selection_delete_student = JOptionPane.showOptionDialog(null, student_fields_delete,
-							"Enter Student ID", JOptionPane.CANCEL_OPTION, 3, null, options_delete_student, null);
+							"Enter student ID", JOptionPane.CANCEL_OPTION, 3, null, options_delete_student, null);
 
 					switch (selection_delete_student)
 					{
 					case 1:
-						String sfirst = student_first_delete.getText();
-						String slast = student_last_delete.getText();
-						String smajor = student_major_delete.getText();
+						String sID = student_ID_delete.getText();
+
 						// ========================================================
 						//
-						// what needs to be done: SQL FUNCTION TO delete professor here
+						// what needs to be done: SQL FUNCTION TO delete zstudent here
 						//
 						// ========================================================
 
-						boolean success = SQL.DeleteStudent(conn,sfirst, slast, smajor ); // SQL BOOLEAN TO VERIFY student IS ADDED/DELETED
+						boolean success = false; // SQL BOOLEAN TO VERIFY student IS ADDED/DELETED
 
 						if (success)
 						{
@@ -467,7 +519,6 @@ public class SchoolAdministratorMainWindow
 
 				}
 			}
-			//complete and works -- TESTED
 			if (source == SEE_STUDENT_RECORD)
 			{
 
@@ -496,17 +547,15 @@ public class SchoolAdministratorMainWindow
 
 					CustomOutputStream.main("ADMINISTRATOR: SEE STUDENT RECORD", false);
 
+					/*
+					 * SQL FUNCTION TO GET STUDENT RECORD FROM stud_id HERE IMPORTANT: information
+					 * designed to be displayed using System.print... Console Output it directed to
+					 * new frame created.
+					 */
 
-
-					System.out.println("\n" + "========== Displaying record for student: " + stud_id + " ==========");
-					try {
-						SQL.ViewStudRec(conn, stud_id);
-					} catch (SQLException e) {
-						throw new RuntimeException(e);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-
+					System.out
+							.println("\n" + "============ Displaying record for student: " + stud_id + " ============");
+					// print record here
 
 				}
 				}

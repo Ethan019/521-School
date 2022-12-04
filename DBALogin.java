@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+//AUTHOR: JARED KEKLAK (UNLESS ANNOTATED)
 public class DBALogin
 {
 	private static JButton LOGIN, RETURN;
@@ -72,6 +73,7 @@ public class DBALogin
 		frame.setSize(new Dimension(500, 400));
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setVisible(true);
+		frame.setResizable(false);
 
 		RETURN.addActionListener(e ->
 		{
